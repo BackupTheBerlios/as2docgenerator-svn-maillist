@@ -1,0 +1,871 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [As2docgenerator-svn] r4 - in trunk: dev documentation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/as2docgenerator-svn/2004-October/index.html" >
+   <LINK REL="made" HREF="mailto:as2docgenerator-svn%40lists.berlios.de?Subject=Re%3A%20%5BAs2docgenerator-svn%5D%20r4%20-%20in%20trunk%3A%20dev%20documentation&In-Reply-To=%3C200410030604.i93640Ka010684%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000000.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[As2docgenerator-svn] r4 - in trunk: dev documentation</H1>
+    <B>Tanja Pislar at BerliOS</B> 
+    <A HREF="mailto:as2docgenerator-svn%40lists.berlios.de?Subject=Re%3A%20%5BAs2docgenerator-svn%5D%20r4%20-%20in%20trunk%3A%20dev%20documentation&In-Reply-To=%3C200410030604.i93640Ka010684%40sheep.berlios.de%3E"
+       TITLE="[As2docgenerator-svn] r4 - in trunk: dev documentation">klaut at sheep.berlios.de
+       </A><BR>
+    <I>Sun Oct  3 08:04:00 CEST 2004</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000000.html">[As2docgenerator-svn] r3 - trunk/documentation
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: klaut
+Date: 2004-10-03 08:03:58 +0200 (Sun, 03 Oct 2004)
+New Revision: 4
+
+Added:
+   trunk/documentation/SampleClass.as
+   trunk/documentation/SampleClass_doc.html
+Removed:
+   trunk/dev/SampleClass.as
+   trunk/dev/SampleClass_doc.html
+Modified:
+   trunk/dev/AS2docGenerator.py
+   trunk/documentation/as2docgenerator.mm
+Log:
+moved SampleClass.as and SampleClass_doc.html to documentation folder.
+set up optparse in AS2docGenerator.py
+
+Modified: trunk/dev/AS2docGenerator.py
+===================================================================
+--- trunk/dev/AS2docGenerator.py	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/dev/AS2docGenerator.py	2004-10-03 06:03:58 UTC (rev 4)
+@@ -1,6 +1,6 @@
+ #######################################################################
+ #AS2docGenerator - documentation generator for actionscript2 classes
+-#Copyright (C) Tanja Pislar
++#Copyright (C) Tanja Pislar contact: <A HREF="https://lists.berlios.de/mailman/listinfo/as2docgenerator-svn">klaut at klaustrofobik.org</A>
+ #
+ #This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ #
+@@ -13,9 +13,12 @@
+ import os
+ import stat
+ import string
++import getopt
++from optparse import OptionParser
+ 
+ import core.ASparser.ASparser as ASparser
+ import core.DocOutput.htmlDocOutput as htmlDocOutput
++import core.DocOutput.FlashDocOutput as FlashDocOutput
+ 
+ #this function found on <A HREF="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/161542">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/161542</A>
+ def walktree (top, depthfirst = True):
+@@ -36,72 +39,102 @@
+ 
+ class AS2docGenerator:
+ 	def __init__ (self, filename, newFile):
+-		self.version = &quot;AS2docGenerator beta 0.5.3&quot;
++		self.version = &quot;AS2docGenerator beta 0.5.4&quot;
+ 		self.newFilename = newFile
+ 		self.ASparser = ASparser.ASparser(filename)
+ 		self.documentation = self.ASparser.parse()
+ 
+-	def writeDoc (self, theType = &quot;html&quot;):
++	def writeDoc (self, theType = &quot;html&quot;, bookName=&quot;flashdocs&quot;):
+ 		if theType==&quot;html&quot;:
+ 			theGenerator =htmlDocOutput.HTMLdocGenerator(self.documentation)
++			theGenerator.generateDoc(self.version, self.newFilename)
++		elif theType==&quot;flashdoc&quot;:
++			theGenerator =  FlashDocOutput.FLASHdocGenerator(self.documentation)
++			theGenerator.generateDoc(bookName)
+ 
+-		theGenerator.generateDoc(self.version, self.newFilename)
+ 
+ 
++
+ if __name__=='__main__':
+ 
++	# parsing option arguments
++	usage = &quot;&quot;&quot;usage: %prog [options] arg1 [arg2,..]
++	type %prog -h for help&quot;&quot;&quot;
+ 
+-	# ideas for the next revision:
+-	# -d(dir) dirName -o(output) outputFormat(html|flashdoc|xml) -b(book name for flashdoc) bookName -i(input) .as files or directory of .as files
+-	# example 1:
+-	# AS2docGenerator.exe -d myDir -o flashdoc -b myClasses class1.as class2.as class3.as
+-	# example 2:
+-	# AS2docGenerator.exe -d myDir -o html -i classesDir
+-	end = &quot;.html&quot;
+-	o = sys.argv[1]
+-	if os.path.isdir(o):
++	version =&quot;%prog beta-0.5.4&quot;
++	parser = OptionParser(usage=usage, version=version)
++	parser.add_option(&quot;-o&quot;, &quot;--out&quot;, dest=&quot;output&quot;, default=&quot;html&quot;,
++                  help=&quot;&quot;&quot;the output format of the documentation 
++						options: html|flashdoc&quot;&quot;&quot;)
+ 
++	(options, args) = parser.parse_args()
+ 
+-		d = os.getcwd()
+-		ndir = os.path.join(d, '_docs')
+-		if not os.path.exists(ndir):
+-			os.makedirs(ndir)
++	if len(args) == 0:
++		print parser.error(&quot;incorrect number of arguments&quot;)
+ 
+-		for (basepath, children) in walktree(o):
+-			for child in children:
+-				print os.path.join(basepath, child)
+-				f = os.path.join(basepath, child)
++	else:
++		
++		if options.output == &quot;html&quot;:
++			#print args
++			print &quot;generating html documentation...&quot;
++			################################################
++			end = &quot;.html&quot;
++			o = args[0]
++			if os.path.isdir(o):
++				d = os.getcwd()
++				ndir = os.path.join(d, '_docs')
++				if not os.path.exists(ndir):
++					os.makedirs(ndir)
+ 
+-				if os.path.isfile(f):
+-					newname = os.path.basename(f)
+-					ext = string.lower((os.path.splitext(f))[1])[1:]
+-					if ext==&quot;as&quot;:
+-						try:
+-							newname = newname[:newname.index(&quot;.&quot;)] + &quot;_doc&quot; + end
+-							newFile = os.path.join(ndir, newname)
+-							theDoc = AS2docGenerator(f, newFile)
+-							theDoc.writeDoc()
+-						except Exception, e:
+-							print e
+-							continue
++				for (basepath, children) in walktree(o):
++					for child in children:
++						print os.path.join(basepath, child)
++						f = os.path.join(basepath, child)
++
++						if os.path.isfile(f):
++							newname = os.path.basename(f)
++							ext = string.lower((os.path.splitext(f))[1])[1:]
++							if ext==&quot;as&quot;:
++								try:
++									newname = newname[:newname.index(&quot;.&quot;)] + &quot;_doc&quot; + end
++									newFile = os.path.join(ndir, newname)
++									theDoc = AS2docGenerator(f, newFile)
++									theDoc.writeDoc()
++								except Exception, e:
++									print e
++									continue
+ 						
+-							
+-							
++			else:
++				fname = o
++				newname = os.path.basename(fname)
++				theDir = os.path.dirname(fname)
++				try:
++					if &quot;.&quot; not in newname:
++						raise Exception(&quot;### ERROR: the filename provided does not seem to be a correct file name or directory.\nPlease, check the filename and try again [hint: classfile.as]&quot;)
+ 
+-	else:
++					newname = newname[:newname.index(&quot;.&quot;)] + &quot;_doc&quot; + end
++					newFile = os.path.join(theDir, newname)
+ 
++					theDoc = AS2docGenerator(fname, newFile)
++					theDoc.writeDoc()
++				except Exception, e:
++					print e
++			################################################
++		elif options.output == &quot;flashdoc&quot;:
++		# FINISH IT -- right now it does not work
++			print &quot;generating flashdoc documentation... in the next revision.&quot;
++			#f = args[0]
++			#if os.path.isfile(f):
++				#newname = os.path.basename(f)
++				#ext = string.lower((os.path.splitext(f))[1])[1:]
++				#if ext==&quot;as&quot;:
++					#try:
++						#newname = newname[:newname.index(&quot;.&quot;)]
+ 
+-		fname = o
+-		newname = os.path.basename(fname)
+-		theDir = os.path.dirname(fname)
+-		try:
+-			if &quot;.&quot; not in newname:
+-				raise Exception(&quot;### ERROR: the filename provided does not seem to be a correct file name or directory.\nPlease, check the filename and try again [hint: classfile.as]&quot;)
+ 
+-			newname = newname[:newname.index(&quot;.&quot;)] + &quot;_doc&quot; + end
+-			newFile = os.path.join(theDir, newname)
+-
+-			theDoc = AS2docGenerator(fname, newFile)
+-			theDoc.writeDoc()
+-		except Exception, e:
+-			print e
++	# ideas for the next revision:
++	# -d(dir) dirName -o(output) outputFormat(html|flashdoc|xml) -b(book name for flashdoc) bookName -i(input) .as files or directory of .as files
++	# example 1:
++	# AS2docGenerator.exe -d myDir -o flashdoc -b myClasses class1.as class2.as class3.as
++	# example 2:
++	# AS2docGenerator.exe -d myDir -o html -i classesDir
+\ No newline at end of file
+
+Deleted: trunk/dev/SampleClass.as
+===================================================================
+--- trunk/dev/SampleClass.as	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/dev/SampleClass.as	2004-10-03 06:03:58 UTC (rev 4)
+@@ -1,119 +0,0 @@
+-&#65279;import MYClass;
+-
+-/**
+-* @class StringTokenizer
+-* @author Joe Coder
+-* @version 0.5
+-* @description Implements the behaviour of Java StringTokenizer Class&lt;p&gt;
+-*		Constructs a string tokenizer for the specified string. The
+-*		characters in the &lt;code&gt;delim&lt;/code&gt; argument are the delimiters
+-*		for separating tokens. Delimiter characters themselves will not
+-*		be treated as tokens.
+-*
+-*		The set of delimiters (the characters that separate tokens) may
+-*		be specified either at creation time or on a per-token basis.
+-*		&lt;p&gt;
+-*		A &lt;tt&gt;StringTokenizer&lt;/tt&gt; object internally maintains a current
+-*		position within the string to be tokenized. Some operations advance this
+-*		current position past the characters processed.&lt;p&gt;
+-*		A token is returned by taking a substring of the string that was used to
+-*		create the &lt;tt&gt;StringTokenizer&lt;/tt&gt; object.
+-*		&lt;p&gt;
+-*		The following is one example of the use of the tokenizer. The code:
+-*		&lt;blockquote&gt;&lt;pre&gt;
+-*		st:StringTokenizer  = new StringTokenizer(&quot;this is a test&quot;);
+-*		while (st.hasMoreTokens()) {
+-*			trace(st.nextToken());
+-*		}
+-*		&lt;/pre&gt;&lt;/blockquote&gt;
+-*		&lt;p&gt;
+-*		prints the following output:
+-*		&lt;blockquote&gt;&lt;pre&gt;
+-*		this
+-*		is
+-*		a
+-*		test
+-*		&lt;/pre&gt;&lt;/blockquote&gt;
+-* @usage   &lt;pre&gt;myTokenizer = new StringTokenizer(str[, delim])&lt;/pre&gt;
+-* @param   str  (String)   a string to be parsed.
+-* @param   delim (String)  the delimiters.
+-*/
+-
+-class StringTokenizer
+-{
+-	/**
+-	* @property anotherProp
+-	* @property someProp (String) Not sure what's it for.
+-	* @property otherProp (Number) Not sure either. Looks nice, though.
+-	*@property yetAnotherProp (Object) plain Object. really useless.
+-	*/
+-	private var _string:String;
+-	private var _delimiters:String;
+-	private var _currPosition:Number;
+-	private var _newPosition:Number;
+-	private var _maxPosition:Number;
+-	private var _delimitersChanged:Boolean;
+-
+-	public function StringTokenizer(str:String, delim:String){
+-		_string = str;
+-		_delimiters = (delim) ? delim : &quot; \t\n\r\f&quot;;
+-		_currPosition = 0;
+-		_newPosition = -1;
+-		_maxPosition = _string.length;
+-		_delimitersChanged = false;
+-
+-	}
+-	/**
+-	* @method hasMoreTokens
+-	* @description  Tests if there are more tokens available from this tokenizer's string.
+-	*		If this method returns &lt;tt&gt;true&lt;/tt&gt;, then a subsequent call to
+-	*		&lt;tt&gt;nextToken&lt;/tt&gt; with no argument will successfully return a token.
+-	* @usage &lt;code&gt;StringTokenizer.hasMoreTokens()&lt;/code&gt;
+-	* @returns  &lt;code&gt;true&lt;/code&gt; if and only if there is at least one token
+-	*          in the string after the current position; &lt;code&gt;false&lt;/code&gt;
+-	*          otherwise.
+-	*/
+-	public function hasMoreTokens():Boolean{
+-		return true;
+-	}
+-
+-	/**
+-	* @method nextToken
+-	* @description  Returns the next token in this string tokenizer's string. First,
+-	*		the set of characters considered to be delimiters by this
+-	*		&lt;tt&gt;StringTokenizer&lt;/tt&gt; object is changed to be the characters in
+-	*		the string &lt;tt&gt;delim&lt;/tt&gt;. Then the next token in the string
+-	*		after the current position is returned. The current position is
+-	*		advanced beyond the recognized token.  The new delimiter set
+-	*		remains the default after this call.
+-	* @usage &lt;code&gt;StringTokenizer.nextToken(delim)&lt;/code&gt;
+-	* @param delim (String) the new delimiters.
+-	* @return String - The next token after switching to the new delimiter set.
+-	* @throws  NoSuchElementError  if there are no more tokens in this
+-	*               tokenizer's string.
+-	*/
+-	public function nextToken(delim:String):String{
+-		var s=new String(&quot;test&quot;);
+-		if (s==undefined) {
+-			throw new NoSuchElementError(&quot;no more tokens&quot;);
+-		} else {
+-			return s;
+-		}
+-	}
+-	/**
+-	* @method countTokens
+-	* @description  Calculates the number of times that this tokenizer's
+-	*		&lt;code&gt;nextToken&lt;/code&gt; method can be called before it generates an
+-	*		exception. The current position is not advanced.
+-	* @usage &lt;code&gt;StringTokenizer.countTokens()&lt;/code&gt;
+-	* @returns Number - tokens remaining in the string using the current delimiter set.
+-	*/
+-	public function countTokens():Number{
+-		var n = 1;
+-		return n;
+-	}
+-
+-	private function scanTokens(){
+-	}
+-
+-}
+\ No newline at end of file
+
+Deleted: trunk/dev/SampleClass_doc.html
+===================================================================
+--- trunk/dev/SampleClass_doc.html	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/dev/SampleClass_doc.html	2004-10-03 06:03:58 UTC (rev 4)
+@@ -1,169 +0,0 @@
+-
+-		&lt;HTML&gt;
+-		&lt;HEAD&gt;
+-		&lt;TITLE&gt;StringTokenizer  Documentation&lt;/TITLE&gt;
+-		
+-		&lt;STYLE&gt;&lt;!--
+-		HR.small{height:1px; width:100%; background:#E7BFA3; border: 0px;}
+-		HR.big{height:4px; width:100%; background:#E7BFA3; border: 0px;}
+-		A:hover{text-decoration: underline}
+-		A{text-decoration: none; color: #993333}
+-		code{font-family:monospace; font-size: 12px; color: #666666;}
+-		.methodAttributesTitle{font-size: 12px; font-weight: bold; color: #7B779C}
+-		.ToC{font-size: 12px; font-weight: bold; color: #993333}
+-		.methodTitle{font-size: 14px; font-weight: bold; color: #993333}
+-		.groupTitle{font-size: 18px; font-weight: bold; color: #993333}
+-		.sectionTitle{font-size: 22px; font-weight: bold; color: #993333}
+-		.majorTitle{font-size: 32px; font-weight: bold; color: #993333; padding-bottom:100px;}
+-		.methodsDiv{margin-left:40px;}
+-		.footer{font-size: 11px; color: #666666;}
+-		body{font-family: arial,sans-serif; font-size: 12px;}
+-		//--&gt;&lt;/STYLE&gt;
+-		
+-		&lt;/HEAD&gt;
+-		&lt;BODY bgColor='white'&gt;
+-		&lt;P class='majorTitle'&gt;StringTokenizer Documentation&lt;/P&gt;
+-		
+-
+-		&lt;P&gt;&lt;B&gt;Author:&lt;/B&gt; Joe Coder&lt;BR&gt;
+-		&lt;B&gt;Last Modified:&lt;/B&gt; 07/27/04 22:04:42&lt;HR class='big'&gt;
+-
+-		&lt;P class='sectionTitle'&gt;Summary&lt;/P&gt;
+-		&lt;P class='ToC'&gt;StringTokenizer interface:&lt;/P&gt;
+-		&lt;div class='methodsDiv'&gt;&lt;a href='#classinfo'&gt;- description&lt;/a&gt;&lt;/div&gt;
+-&lt;P class='ToC'&gt;StringTokenizer Properties:&lt;/P&gt;&lt;div class='methodsDiv'&gt;
+-&lt;a href='#anotherProp'&gt;- anotherProp&lt;/a&gt;&lt;br&gt;
+-&lt;a href='#someProp'&gt;- someProp&lt;/a&gt;&lt;br&gt;
+-&lt;a href='#otherProp'&gt;- otherProp&lt;/a&gt;&lt;br&gt;
+-&lt;a href='#yetAnotherProp'&gt;- yetAnotherProp&lt;/a&gt;&lt;br&gt;
+-&lt;/div&gt;&lt;br&gt;
+-&lt;P class='ToC'&gt;StringTokenizer Methods:&lt;/P&gt;&lt;div class='methodsDiv'&gt;
+-&lt;a href='#hasMoreTokens'&gt;- hasMoreTokens&lt;/a&gt;&lt;br&gt;
+-&lt;a href='#nextToken'&gt;- nextToken&lt;/a&gt;&lt;br&gt;
+-&lt;a href='#countTokens'&gt;- countTokens&lt;/a&gt;&lt;br&gt;
+-&lt;/div&gt;&lt;br&gt;
+-
+-		&lt;HR class='big'&gt;
+-		&lt;P class='sectionTitle'&gt;&lt;A name='classinfo'&gt;&lt;/A&gt;StringTokenizer &lt;I&gt;interface&lt;/I&gt;&lt;/P&gt;
+-		&lt;P&gt; &lt;span class='methodTitle'&gt;version:&lt;/span&gt; 0.5&lt;/P&gt;
+-		&lt;P class=&quot;methodTitle&quot;&gt;description:&lt;/P&gt;
+-		&lt;P&gt;Implements the behaviour of Java StringTokenizer Class&lt;p&gt;
+-		Constructs a string tokenizer for the specified string. The
+-		characters in the &lt;code&gt;delim&lt;/code&gt; argument are the delimiters
+-		for separating tokens. Delimiter characters themselves will not
+-		be treated as tokens.
+-
+-		The set of delimiters (the characters that separate tokens) may
+-		be specified either at creation time or on a per-token basis.
+-		&lt;p&gt;
+-		A &lt;tt&gt;StringTokenizer&lt;/tt&gt; object internally maintains a current
+-		position within the string to be tokenized. Some operations advance this
+-		current position past the characters processed.&lt;p&gt;
+-		A token is returned by taking a substring of the string that was used to
+-		create the &lt;tt&gt;StringTokenizer&lt;/tt&gt; object.
+-		&lt;p&gt;
+-		The following is one example of the use of the tokenizer. The code:
+-		&lt;blockquote&gt;&lt;pre&gt;
+-		st:StringTokenizer  = new StringTokenizer(&quot;this is a test&quot;);
+-		while (st.hasMoreTokens()) {
+-			trace(st.nextToken());
+-		}
+-		&lt;/pre&gt;&lt;/blockquote&gt;
+-		&lt;p&gt;
+-		prints the following output:
+-		&lt;blockquote&gt;&lt;pre&gt;
+-		this
+-		is
+-		a
+-		test
+-		&lt;/pre&gt;&lt;/blockquote&gt;
+-&lt;/P&gt;
+-		&lt;P class=&quot;methodTitle&quot;&gt;usage:&lt;/P&gt; &lt;pre&gt;myTokenizer = new StringTokenizer(str[, delim])&lt;/pre&gt;
+-
+-&lt;P&gt; &lt;span class='methodTitle'&gt;parameters:&lt;/span&gt;
+-				&lt;ul&gt; 
+-&lt;li&gt;  str  (String)   a string to be parsed.&lt;/li&gt;
+-&lt;li&gt;  delim (String)  the delimiters.&lt;/li&gt;
+-&lt;/ul&gt;
+-&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
+-
+-			&lt;HR class='small'&gt;
+-			&lt;P class='groupTitle'&gt;&lt;A name='properties'&gt;&lt;/A&gt;StringTokenizer Properties:&lt;/P&gt;
+-			&lt;div class='methodsDiv' &gt;
+-			
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='anotherProp'&gt;&lt;/A&gt;&lt;u&gt; anotherProp&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt; No description provided.&lt;/P&gt;
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='someProp'&gt;&lt;/A&gt;&lt;u&gt; someProp&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt; (String) Not sure what's it for.&lt;/P&gt;
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='otherProp'&gt;&lt;/A&gt;&lt;u&gt; otherProp&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt; (Number) Not sure either. Looks nice, though.&lt;/P&gt;
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='yetAnotherProp'&gt;&lt;/A&gt;&lt;u&gt; yetAnotherProp&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt; (Object) plain Object. really useless.&lt;/P&gt;
+-&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
+-&lt;/div&gt;
+-
+-			&lt;HR class='small'&gt;
+-			&lt;P class='groupTitle'&gt;&lt;A name='methods'&gt;&lt;/A&gt;StringTokenizer Methods:&lt;/P&gt;
+-			&lt;div class='methodsDiv' &gt;
+-			
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='hasMoreTokens'&gt;&lt;/A&gt;&lt;u&gt; hasMoreTokens&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
+-				Tests if there are more tokens available from this tokenizer's string.
+-			If this method returns &lt;tt&gt;true&lt;/tt&gt;, then a subsequent call to
+-			&lt;tt&gt;nextToken&lt;/tt&gt; with no argument will successfully return a token.
+-	&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.hasMoreTokens()&lt;/code&gt;
+-	&lt;/P&gt;
+-&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; &lt;code&gt;true&lt;/code&gt; if and only if there is at least one token
+-	in the string after the current position; &lt;code&gt;false&lt;/code&gt;
+-	otherwise.
+-	&lt;/P&gt;
+-&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='nextToken'&gt;&lt;/A&gt;&lt;u&gt; nextToken&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
+-				Returns the next token in this string tokenizer's string. First,
+-			the set of characters considered to be delimiters by this
+-			&lt;tt&gt;StringTokenizer&lt;/tt&gt; object is changed to be the characters in
+-			the string &lt;tt&gt;delim&lt;/tt&gt;. Then the next token in the string
+-			after the current position is returned. The current position is
+-			advanced beyond the recognized token.  The new delimiter set
+-			remains the default after this call.
+-	&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.nextToken(delim)&lt;/code&gt;
+-	&lt;/P&gt;
+-&lt;P&gt; &lt;span class='methodAttributesTitle'&gt;parameters:&lt;/span&gt;&lt;ul&gt;
+-&lt;li&gt;delim (String) the new delimiters.&lt;/li&gt;
+-&lt;/ul&gt;&lt;/P&gt;
+-&lt;P&gt; &lt;span class='methodAttributesTitle'&gt;throws:&lt;/span&gt; NoSuchElementError  if there are no more tokens in this
+-	tokenizer's string.
+-	&lt;/P&gt;
+-&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; String - The next token after switching to the new delimiter set.
+-	&lt;/P&gt;
+-&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
+-
+-				&lt;P class='methodTitle'&gt;&lt;A name='countTokens'&gt;&lt;/A&gt;&lt;u&gt; countTokens&lt;/u&gt;&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
+-				Calculates the number of times that this tokenizer's
+-			&lt;code&gt;nextToken&lt;/code&gt; method can be called before it generates an
+-			exception. The current position is not advanced.
+-	&lt;/P&gt;
+-				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.countTokens()&lt;/code&gt;
+-	&lt;/P&gt;
+-&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; Number - tokens remaining in the string using the current delimiter set.
+-	&lt;/P&gt;
+-&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
+-&lt;/div&gt;
+-
+-			&lt;BR&gt;
+-			&lt;BR&gt;
+-			&lt;HR class='big'&gt;
+-			&lt;span class=&quot;footer&quot;&gt;generated with &lt;A href='<A HREF="http://blog.klaustrofobik.org/">http://blog.klaustrofobik.org/</A>' target='_blank'&gt;AS2docGenerator beta 0.5.3&lt;/A&gt;&lt;/span&gt;
+-			&lt;/BODY&gt;
+-			&lt;/HTML&gt;
+-			
+
+Added: trunk/documentation/SampleClass.as
+===================================================================
+--- trunk/documentation/SampleClass.as	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/documentation/SampleClass.as	2004-10-03 06:03:58 UTC (rev 4)
+@@ -0,0 +1,119 @@
++&#65279;import MYClass;
++
++/**
++* @class StringTokenizer
++* @author Joe Coder
++* @version 0.5
++* @description Implements the behaviour of Java StringTokenizer Class&lt;p&gt;
++*		Constructs a string tokenizer for the specified string. The
++*		characters in the &lt;code&gt;delim&lt;/code&gt; argument are the delimiters
++*		for separating tokens. Delimiter characters themselves will not
++*		be treated as tokens.
++*
++*		The set of delimiters (the characters that separate tokens) may
++*		be specified either at creation time or on a per-token basis.
++*		&lt;p&gt;
++*		A &lt;tt&gt;StringTokenizer&lt;/tt&gt; object internally maintains a current
++*		position within the string to be tokenized. Some operations advance this
++*		current position past the characters processed.&lt;p&gt;
++*		A token is returned by taking a substring of the string that was used to
++*		create the &lt;tt&gt;StringTokenizer&lt;/tt&gt; object.
++*		&lt;p&gt;
++*		The following is one example of the use of the tokenizer. The code:
++*		&lt;blockquote&gt;&lt;pre&gt;
++*		st:StringTokenizer  = new StringTokenizer(&quot;this is a test&quot;);
++*		while (st.hasMoreTokens()) {
++*			trace(st.nextToken());
++*		}
++*		&lt;/pre&gt;&lt;/blockquote&gt;
++*		&lt;p&gt;
++*		prints the following output:
++*		&lt;blockquote&gt;&lt;pre&gt;
++*		this
++*		is
++*		a
++*		test
++*		&lt;/pre&gt;&lt;/blockquote&gt;
++* @usage   &lt;pre&gt;myTokenizer = new StringTokenizer(str[, delim])&lt;/pre&gt;
++* @param   str  (String)   a string to be parsed.
++* @param   delim (String)  the delimiters.
++*/
++
++class StringTokenizer
++{
++	/**
++	* @property anotherProp
++	* @property someProp (String) Not sure what's it for.
++	* @property otherProp (Number) Not sure either. Looks nice, though.
++	*@property yetAnotherProp (Object) plain Object. really useless.
++	*/
++	private var _string:String;
++	private var _delimiters:String;
++	private var _currPosition:Number;
++	private var _newPosition:Number;
++	private var _maxPosition:Number;
++	private var _delimitersChanged:Boolean;
++
++	public function StringTokenizer(str:String, delim:String){
++		_string = str;
++		_delimiters = (delim) ? delim : &quot; \t\n\r\f&quot;;
++		_currPosition = 0;
++		_newPosition = -1;
++		_maxPosition = _string.length;
++		_delimitersChanged = false;
++
++	}
++	/**
++	* @method hasMoreTokens
++	* @description  Tests if there are more tokens available from this tokenizer's string.
++	*		If this method returns &lt;tt&gt;true&lt;/tt&gt;, then a subsequent call to
++	*		&lt;tt&gt;nextToken&lt;/tt&gt; with no argument will successfully return a token.
++	* @usage &lt;code&gt;StringTokenizer.hasMoreTokens()&lt;/code&gt;
++	* @returns  &lt;code&gt;true&lt;/code&gt; if and only if there is at least one token
++	*          in the string after the current position; &lt;code&gt;false&lt;/code&gt;
++	*          otherwise.
++	*/
++	public function hasMoreTokens():Boolean{
++		return true;
++	}
++
++	/**
++	* @method nextToken
++	* @description  Returns the next token in this string tokenizer's string. First,
++	*		the set of characters considered to be delimiters by this
++	*		&lt;tt&gt;StringTokenizer&lt;/tt&gt; object is changed to be the characters in
++	*		the string &lt;tt&gt;delim&lt;/tt&gt;. Then the next token in the string
++	*		after the current position is returned. The current position is
++	*		advanced beyond the recognized token.  The new delimiter set
++	*		remains the default after this call.
++	* @usage &lt;code&gt;StringTokenizer.nextToken(delim)&lt;/code&gt;
++	* @param delim (String) the new delimiters.
++	* @return String - The next token after switching to the new delimiter set.
++	* @throws  NoSuchElementError  if there are no more tokens in this
++	*               tokenizer's string.
++	*/
++	public function nextToken(delim:String):String{
++		var s=new String(&quot;test&quot;);
++		if (s==undefined) {
++			throw new NoSuchElementError(&quot;no more tokens&quot;);
++		} else {
++			return s;
++		}
++	}
++	/**
++	* @method countTokens
++	* @description  Calculates the number of times that this tokenizer's
++	*		&lt;code&gt;nextToken&lt;/code&gt; method can be called before it generates an
++	*		exception. The current position is not advanced.
++	* @usage &lt;code&gt;StringTokenizer.countTokens()&lt;/code&gt;
++	* @returns Number - tokens remaining in the string using the current delimiter set.
++	*/
++	public function countTokens():Number{
++		var n = 1;
++		return n;
++	}
++
++	private function scanTokens(){
++	}
++
++}
+\ No newline at end of file
+
+Added: trunk/documentation/SampleClass_doc.html
+===================================================================
+--- trunk/documentation/SampleClass_doc.html	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/documentation/SampleClass_doc.html	2004-10-03 06:03:58 UTC (rev 4)
+@@ -0,0 +1,169 @@
++
++		&lt;HTML&gt;
++		&lt;HEAD&gt;
++		&lt;TITLE&gt;StringTokenizer  Documentation&lt;/TITLE&gt;
++		
++		&lt;STYLE&gt;&lt;!--
++		HR.small{height:1px; width:100%; background:#E7BFA3; border: 0px;}
++		HR.big{height:4px; width:100%; background:#E7BFA3; border: 0px;}
++		A:hover{text-decoration: underline}
++		A{text-decoration: none; color: #993333}
++		code{font-family:monospace; font-size: 12px; color: #666666;}
++		.methodAttributesTitle{font-size: 12px; font-weight: bold; color: #7B779C}
++		.ToC{font-size: 12px; font-weight: bold; color: #993333}
++		.methodTitle{font-size: 14px; font-weight: bold; color: #993333}
++		.groupTitle{font-size: 18px; font-weight: bold; color: #993333}
++		.sectionTitle{font-size: 22px; font-weight: bold; color: #993333}
++		.majorTitle{font-size: 32px; font-weight: bold; color: #993333; padding-bottom:100px;}
++		.methodsDiv{margin-left:40px;}
++		.footer{font-size: 11px; color: #666666;}
++		body{font-family: arial,sans-serif; font-size: 12px;}
++		//--&gt;&lt;/STYLE&gt;
++		
++		&lt;/HEAD&gt;
++		&lt;BODY bgColor='white'&gt;
++		&lt;P class='majorTitle'&gt;StringTokenizer Documentation&lt;/P&gt;
++		
++
++		&lt;P&gt;&lt;B&gt;Author:&lt;/B&gt; Joe Coder&lt;BR&gt;
++		&lt;B&gt;Last Modified:&lt;/B&gt; 07/27/04 22:04:42&lt;HR class='big'&gt;
++
++		&lt;P class='sectionTitle'&gt;Summary&lt;/P&gt;
++		&lt;P class='ToC'&gt;StringTokenizer interface:&lt;/P&gt;
++		&lt;div class='methodsDiv'&gt;&lt;a href='#classinfo'&gt;- description&lt;/a&gt;&lt;/div&gt;
++&lt;P class='ToC'&gt;StringTokenizer Properties:&lt;/P&gt;&lt;div class='methodsDiv'&gt;
++&lt;a href='#anotherProp'&gt;- anotherProp&lt;/a&gt;&lt;br&gt;
++&lt;a href='#someProp'&gt;- someProp&lt;/a&gt;&lt;br&gt;
++&lt;a href='#otherProp'&gt;- otherProp&lt;/a&gt;&lt;br&gt;
++&lt;a href='#yetAnotherProp'&gt;- yetAnotherProp&lt;/a&gt;&lt;br&gt;
++&lt;/div&gt;&lt;br&gt;
++&lt;P class='ToC'&gt;StringTokenizer Methods:&lt;/P&gt;&lt;div class='methodsDiv'&gt;
++&lt;a href='#hasMoreTokens'&gt;- hasMoreTokens&lt;/a&gt;&lt;br&gt;
++&lt;a href='#nextToken'&gt;- nextToken&lt;/a&gt;&lt;br&gt;
++&lt;a href='#countTokens'&gt;- countTokens&lt;/a&gt;&lt;br&gt;
++&lt;/div&gt;&lt;br&gt;
++
++		&lt;HR class='big'&gt;
++		&lt;P class='sectionTitle'&gt;&lt;A name='classinfo'&gt;&lt;/A&gt;StringTokenizer &lt;I&gt;interface&lt;/I&gt;&lt;/P&gt;
++		&lt;P&gt; &lt;span class='methodTitle'&gt;version:&lt;/span&gt; 0.5&lt;/P&gt;
++		&lt;P class=&quot;methodTitle&quot;&gt;description:&lt;/P&gt;
++		&lt;P&gt;Implements the behaviour of Java StringTokenizer Class&lt;p&gt;
++		Constructs a string tokenizer for the specified string. The
++		characters in the &lt;code&gt;delim&lt;/code&gt; argument are the delimiters
++		for separating tokens. Delimiter characters themselves will not
++		be treated as tokens.
++
++		The set of delimiters (the characters that separate tokens) may
++		be specified either at creation time or on a per-token basis.
++		&lt;p&gt;
++		A &lt;tt&gt;StringTokenizer&lt;/tt&gt; object internally maintains a current
++		position within the string to be tokenized. Some operations advance this
++		current position past the characters processed.&lt;p&gt;
++		A token is returned by taking a substring of the string that was used to
++		create the &lt;tt&gt;StringTokenizer&lt;/tt&gt; object.
++		&lt;p&gt;
++		The following is one example of the use of the tokenizer. The code:
++		&lt;blockquote&gt;&lt;pre&gt;
++		st:StringTokenizer  = new StringTokenizer(&quot;this is a test&quot;);
++		while (st.hasMoreTokens()) {
++			trace(st.nextToken());
++		}
++		&lt;/pre&gt;&lt;/blockquote&gt;
++		&lt;p&gt;
++		prints the following output:
++		&lt;blockquote&gt;&lt;pre&gt;
++		this
++		is
++		a
++		test
++		&lt;/pre&gt;&lt;/blockquote&gt;
++&lt;/P&gt;
++		&lt;P class=&quot;methodTitle&quot;&gt;usage:&lt;/P&gt; &lt;pre&gt;myTokenizer = new StringTokenizer(str[, delim])&lt;/pre&gt;
++
++&lt;P&gt; &lt;span class='methodTitle'&gt;parameters:&lt;/span&gt;
++				&lt;ul&gt; 
++&lt;li&gt;  str  (String)   a string to be parsed.&lt;/li&gt;
++&lt;li&gt;  delim (String)  the delimiters.&lt;/li&gt;
++&lt;/ul&gt;
++&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
++
++			&lt;HR class='small'&gt;
++			&lt;P class='groupTitle'&gt;&lt;A name='properties'&gt;&lt;/A&gt;StringTokenizer Properties:&lt;/P&gt;
++			&lt;div class='methodsDiv' &gt;
++			
++
++				&lt;P class='methodTitle'&gt;&lt;A name='anotherProp'&gt;&lt;/A&gt;&lt;u&gt; anotherProp&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt; No description provided.&lt;/P&gt;
++
++				&lt;P class='methodTitle'&gt;&lt;A name='someProp'&gt;&lt;/A&gt;&lt;u&gt; someProp&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt; (String) Not sure what's it for.&lt;/P&gt;
++
++				&lt;P class='methodTitle'&gt;&lt;A name='otherProp'&gt;&lt;/A&gt;&lt;u&gt; otherProp&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt; (Number) Not sure either. Looks nice, though.&lt;/P&gt;
++
++				&lt;P class='methodTitle'&gt;&lt;A name='yetAnotherProp'&gt;&lt;/A&gt;&lt;u&gt; yetAnotherProp&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt; (Object) plain Object. really useless.&lt;/P&gt;
++&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
++&lt;/div&gt;
++
++			&lt;HR class='small'&gt;
++			&lt;P class='groupTitle'&gt;&lt;A name='methods'&gt;&lt;/A&gt;StringTokenizer Methods:&lt;/P&gt;
++			&lt;div class='methodsDiv' &gt;
++			
++
++				&lt;P class='methodTitle'&gt;&lt;A name='hasMoreTokens'&gt;&lt;/A&gt;&lt;u&gt; hasMoreTokens&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
++				Tests if there are more tokens available from this tokenizer's string.
++			If this method returns &lt;tt&gt;true&lt;/tt&gt;, then a subsequent call to
++			&lt;tt&gt;nextToken&lt;/tt&gt; with no argument will successfully return a token.
++	&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.hasMoreTokens()&lt;/code&gt;
++	&lt;/P&gt;
++&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; &lt;code&gt;true&lt;/code&gt; if and only if there is at least one token
++	in the string after the current position; &lt;code&gt;false&lt;/code&gt;
++	otherwise.
++	&lt;/P&gt;
++&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
++
++				&lt;P class='methodTitle'&gt;&lt;A name='nextToken'&gt;&lt;/A&gt;&lt;u&gt; nextToken&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
++				Returns the next token in this string tokenizer's string. First,
++			the set of characters considered to be delimiters by this
++			&lt;tt&gt;StringTokenizer&lt;/tt&gt; object is changed to be the characters in
++			the string &lt;tt&gt;delim&lt;/tt&gt;. Then the next token in the string
++			after the current position is returned. The current position is
++			advanced beyond the recognized token.  The new delimiter set
++			remains the default after this call.
++	&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.nextToken(delim)&lt;/code&gt;
++	&lt;/P&gt;
++&lt;P&gt; &lt;span class='methodAttributesTitle'&gt;parameters:&lt;/span&gt;&lt;ul&gt;
++&lt;li&gt;delim (String) the new delimiters.&lt;/li&gt;
++&lt;/ul&gt;&lt;/P&gt;
++&lt;P&gt; &lt;span class='methodAttributesTitle'&gt;throws:&lt;/span&gt; NoSuchElementError  if there are no more tokens in this
++	tokenizer's string.
++	&lt;/P&gt;
++&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; String - The next token after switching to the new delimiter set.
++	&lt;/P&gt;
++&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
++
++				&lt;P class='methodTitle'&gt;&lt;A name='countTokens'&gt;&lt;/A&gt;&lt;u&gt; countTokens&lt;/u&gt;&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;description: &lt;/span&gt;
++				Calculates the number of times that this tokenizer's
++			&lt;code&gt;nextToken&lt;/code&gt; method can be called before it generates an
++			exception. The current position is not advanced.
++	&lt;/P&gt;
++				&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;usage:&lt;/span&gt; &lt;code&gt;StringTokenizer.countTokens()&lt;/code&gt;
++	&lt;/P&gt;
++&lt;P&gt;&lt;span class='methodAttributesTitle'&gt;returns:&lt;/span&gt; Number - tokens remaining in the string using the current delimiter set.
++	&lt;/P&gt;
++&lt;p&gt;&lt;a href='#'&gt;back to top&lt;/a&gt;&lt;/p&gt;
++&lt;/div&gt;
++
++			&lt;BR&gt;
++			&lt;BR&gt;
++			&lt;HR class='big'&gt;
++			&lt;span class=&quot;footer&quot;&gt;generated with &lt;A href='<A HREF="http://blog.klaustrofobik.org/">http://blog.klaustrofobik.org/</A>' target='_blank'&gt;AS2docGenerator beta 0.5.3&lt;/A&gt;&lt;/span&gt;
++			&lt;/BODY&gt;
++			&lt;/HTML&gt;
++			
+
+Modified: trunk/documentation/as2docgenerator.mm
+===================================================================
+--- trunk/documentation/as2docgenerator.mm	2004-10-02 16:04:13 UTC (rev 3)
++++ trunk/documentation/as2docgenerator.mm	2004-10-03 06:03:58 UTC (rev 4)
+@@ -21,7 +21,8 @@
+ &lt;node TEXT=&quot;methods&quot;&gt;
+ &lt;node TEXT=&quot;method&quot;&gt;
+ &lt;node TEXT=&quot;attr. name&quot; STYLE=&quot;fork&quot;/&gt;
+-&lt;node TEXT=&quot;attr. visibility&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. visibility (public|private)&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. modifier (static)&quot; STYLE=&quot;fork&quot;/&gt;
+ &lt;node TEXT=&quot;attr. returnType&quot; STYLE=&quot;fork&quot;/&gt;
+ &lt;node TEXT=&quot;params&quot;&gt;
+ &lt;node TEXT=&quot;param&quot;&gt;
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000000.html">[As2docgenerator-svn] r3 - trunk/documentation
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/as2docgenerator-svn">More information about the As2docgenerator-svn
+mailing list</a><br>
+</body></html>

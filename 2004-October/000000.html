@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [As2docgenerator-svn] r3 - trunk/documentation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/as2docgenerator-svn/2004-October/index.html" >
+   <LINK REL="made" HREF="mailto:as2docgenerator-svn%40lists.berlios.de?Subject=Re%3A%20%5BAs2docgenerator-svn%5D%20r3%20-%20trunk/documentation&In-Reply-To=%3C200410021604.i92G4ETG010388%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000001.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[As2docgenerator-svn] r3 - trunk/documentation</H1>
+    <B>Tanja Pislar at BerliOS</B> 
+    <A HREF="mailto:as2docgenerator-svn%40lists.berlios.de?Subject=Re%3A%20%5BAs2docgenerator-svn%5D%20r3%20-%20trunk/documentation&In-Reply-To=%3C200410021604.i92G4ETG010388%40sheep.berlios.de%3E"
+       TITLE="[As2docgenerator-svn] r3 - trunk/documentation">klaut at sheep.berlios.de
+       </A><BR>
+    <I>Sat Oct  2 18:04:14 CEST 2004</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000001.html">[As2docgenerator-svn] r4 - in trunk: dev documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#0">[ date ]</a>
+              <a href="thread.html#0">[ thread ]</a>
+              <a href="subject.html#0">[ subject ]</a>
+              <a href="author.html#0">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: klaut
+Date: 2004-10-02 18:04:13 +0200 (Sat, 02 Oct 2004)
+New Revision: 3
+
+Added:
+   trunk/documentation/as2docgenerator.mm
+Log:
+started writting down (actually, branching out ;)) possible solutions for the xml class model.
+
+Added: trunk/documentation/as2docgenerator.mm
+===================================================================
+--- trunk/documentation/as2docgenerator.mm	2004-07-27 21:02:26 UTC (rev 2)
++++ trunk/documentation/as2docgenerator.mm	2004-10-02 16:04:13 UTC (rev 3)
+@@ -0,0 +1,62 @@
++&lt;map version=&quot;0.7.1&quot;&gt;
++&lt;node COLOR=&quot;#006633&quot; TEXT=&quot;as2docgenerator&quot;&gt;
++&lt;node COLOR=&quot;#006633&quot; TEXT=&quot;xml Class model&quot; POSITION=&quot;right&quot;&gt;
++&lt;edge WIDTH=&quot;thin&quot;/&gt;
++&lt;cloud COLOR=&quot;#fce3e3&quot;/&gt;
++&lt;font NAME=&quot;SansSerif&quot; SIZE=&quot;12&quot;/&gt;
++&lt;icon BUILTIN=&quot;pencil&quot;/&gt;
++&lt;node TEXT=&quot;class&quot; STYLE=&quot;bubble&quot;&gt;
++&lt;node TEXT=&quot;attr. type (interface|class)&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. name&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. version&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. package&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. author&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node COLOR=&quot;#000000&quot; TEXT=&quot;properties&quot; STYLE=&quot;bubble&quot;&gt;
++&lt;node TEXT=&quot;property&quot;&gt;
++&lt;node TEXT=&quot;attr. visibility&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. type&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. name&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;methods&quot;&gt;
++&lt;node TEXT=&quot;method&quot;&gt;
++&lt;node TEXT=&quot;attr. name&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. visibility&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. returnType&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;params&quot;&gt;
++&lt;node TEXT=&quot;param&quot;&gt;
++&lt;node TEXT=&quot;attr. type&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;node TEXT=&quot;attr. name&quot; STYLE=&quot;fork&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;description&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;description&quot;/&gt;
++&lt;node TEXT=&quot;detailed_description&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;documentation keywords&quot; POSITION=&quot;left&quot;&gt;
++&lt;icon BUILTIN=&quot;xmag&quot;/&gt;
++&lt;node TEXT=&quot;class related&quot;&gt;
++&lt;icon BUILTIN=&quot;pencil&quot;/&gt;
++&lt;node TEXT=&quot;@name&quot;/&gt;
++&lt;node TEXT=&quot;@version&quot;/&gt;
++&lt;node TEXT=&quot;@author&quot;/&gt;
++&lt;node TEXT=&quot;@property&quot;/&gt;
++&lt;node TEXT=&quot;@see&quot;/&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;methods&quot;&gt;
++&lt;icon BUILTIN=&quot;pencil&quot;/&gt;
++&lt;node TEXT=&quot;@param&quot;/&gt;
++&lt;node TEXT=&quot;@see&quot;/&gt;
++&lt;/node&gt;
++&lt;node TEXT=&quot;documentation starts with /** and ends with **/&amp;#xa;documentation must be placed ABOVE the &amp;#xa;method/class/interface in question&amp;#xa;---&amp;#xa;probably a good idea to keep the special keywords&amp;#xa;to the minimum.. description, for example, should not&amp;#xa;require a separate @description keyword, it is the text &amp;#xa;right after /** and lasts until the first empty line.&amp;#xa;Example:&amp;#xa;/**&amp;#xa;this is some description&amp;#xa;and this is too&amp;#xa;&amp;#xa;@param firstParam&amp;#xa;**/&quot;&gt;
++&lt;icon BUILTIN=&quot;pencil&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;node COLOR=&quot;#990000&quot; TEXT=&quot;process xmlClassModel with XSL&quot; POSITION=&quot;right&quot;&gt;
++&lt;icon BUILTIN=&quot;xmag&quot;/&gt;
++&lt;/node&gt;
++&lt;/node&gt;
++&lt;/map&gt;
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000001.html">[As2docgenerator-svn] r4 - in trunk: dev documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#0">[ date ]</a>
+              <a href="thread.html#0">[ thread ]</a>
+              <a href="subject.html#0">[ subject ]</a>
+              <a href="author.html#0">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/as2docgenerator-svn">More information about the As2docgenerator-svn
+mailing list</a><br>
+</body></html>
